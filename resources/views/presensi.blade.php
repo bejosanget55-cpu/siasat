@@ -23,14 +23,14 @@
 
     <div class="max-w-6xl mx-auto space-y-6">
         
-        <!-- Header & Navigasi Terpadu -->
+        <!-- Header & Navigasi -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg">
             <div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-ping"></span>
                     <h1 class="text-2xl font-black tracking-wide text-emerald-400">GATE SCANNER PRESENSI WAJAH</h1>
                 </div>
-                <p class="text-xs text-slate-400 mt-1">Mode Otomatis Gerbang Masuk Madrasah (Tanpa Sentuh / Hands-Free)</p>
+                <p class="text-xs text-slate-400 mt-1">Mode Otomatis Gerbang Masuk Madrasah (Sapaan Suara Suara Marhaban)</p>
             </div>
             <div class="mt-4 md:mt-0 flex gap-2">
                 <a href="/rekap" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1 shadow">
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <!-- Pengaturan Mode (Default: Semua Kelas & Presensi Pagi) -->
+        <!-- Pengaturan Mode Presensi -->
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-wrap gap-4 items-center">
             <div>
                 <label class="text-xs text-slate-400 font-semibold block mb-1">TARGET KELAS:</label>
@@ -112,6 +112,24 @@
         let totalPresent = 0;
         const recentScanned = new Map(); 
 
+        // 1. Suara Sapaan Suara Bahasa Indonesia & Marhaban
+        function speakGreeting(studentName) {
+            if ('speechSynthesis' in window) {
+                // Hentikan suara sebelumnya jika masih ada yang bicara
+                window.speechSynthesis.cancel();
+
+                const text = `Marhaban ${studentName}, selamat datang. Kehadiran berhasil dicatat.`;
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                utterance.lang = 'id-ID'; // Bahasa Indonesia
+                utterance.rate = 1.0;     // Kecepatan normal
+                utterance.pitch = 1.1;    // Nada ramah
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Suara Beep Cadangan
         function playBeep(success = true) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -244,14 +262,15 @@
                 const result = await res.json();
 
                 if (result.status === 'success') {
-                    playBeep(true);
+                    // Bunyikan sapaan suara Marhaban
+                    speakGreeting(result.data.name);
                     addLog(result.data.name, result.data.class_name, result.data.time);
                     scannerStatus.className = "w-full mt-3 p-3 text-center rounded-xl font-bold text-sm bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 animate-pulse";
                     scannerStatus.innerText = `✅ HADIR: ${result.data.name} (${result.data.class_name}) - ${result.data.time}`;
                 } else if (result.status === 'already') {
                     playBeep(false);
                     scannerStatus.className = "w-full mt-3 p-3 text-center rounded-xl font-semibold text-sm bg-amber-500/20 text-amber-300 border border-amber-500/40";
-                    scannerStatus.innerText = `ℹ️ ${result.message}`;
+                    scannerStatus.innerText = `ℹ️️ ${result.message}`;
                 }
             } catch (err) {
                 console.error(err);

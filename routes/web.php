@@ -9,9 +9,15 @@ Route::get('/', function () {
     return redirect('/presensi');
 });
 
-// 1. Modul Registrasi Wajah Siswa
+// 1. Modul Registrasi Wajah & Antrean Impor Siswa
 Route::get('/registrasi', [StudentController::class, 'index']);
+Route::get('/registrasi/template', [StudentController::class, 'downloadTemplate']);
+Route::post('/registrasi/import', [StudentController::class, 'importCsv']);
+Route::get('/registrasi/students/{classId}', [StudentController::class, 'getStudentsByClass']);
 Route::post('/registrasi/simpan', [StudentController::class, 'store']);
+Route::post('/registrasi/update', [StudentController::class, 'updateStudent']);
+Route::post('/registrasi/delete/{id}', [StudentController::class, 'deleteStudent']);
+Route::post('/registrasi/reset-face/{id}', [StudentController::class, 'resetFace']);
 
 // 2. Modul Pemindai Presensi Wajah
 Route::get('/presensi', [AttendanceController::class, 'index']);
